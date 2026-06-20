@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-<header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>กลุ่มที่ • รายการที่ • เลือกอันดับ 1–100 • แชร์ LINE / Messenger</p></header>
+<header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>รายการที่ → รายการแข่งขัน → รอบ → กลุ่มที่ • เลือกอันดับ 1–100</p></header>
 <main class="wrap">
   <section class="card">
     <div class="title">ตั้งค่าหน่วยกีฬา</div>
@@ -39,11 +39,11 @@
   <section class="card">
     <div class="title">ข้อมูลรายการแข่งขัน</div>
     <div class="grid">
-      <div><label>กลุ่มที่</label><input id="groupNo" placeholder="เช่น 1 / ก / ม.ต้น" /></div>
       <div><label>รายการที่</label><input id="itemNo" placeholder="เช่น 1 หรือ 001" /></div>
+      <div><label>รายการแข่งขัน</label><input id="eventName" placeholder="เช่น วิ่ง 100 เมตร ชาย" /></div>
       <div><label>รอบ</label><select id="roundName"><option>รอบคัดเลือก</option><option>รอบชิงชนะเลิศ</option></select></div>
-      <div><label>ต้องการแสดงกี่อันดับ</label><select id="rankCount" onchange="createRankTable()"></select></div>
-      <div class="full"><label>รายการแข่งขัน</label><input id="eventName" placeholder="เช่น วิ่ง 100 เมตร ชาย" /></div>
+      <div><label>กลุ่มที่</label><input id="groupNo" placeholder="เช่น 1 / ก / ม.ต้น" /></div>
+      <div class="full"><label>ต้องการแสดงกี่อันดับ</label><select id="rankCount" onchange="createRankTable()"></select></div>
     </div>
   </section>
 
@@ -98,21 +98,29 @@ function createRankTable(){
   for(let i=1;i<=count;i++) tbody.innerHTML += `<tr><td><span class="rank-badge">${i}</span></td><td><select class="teamSelect" onchange="updatePreview()">${getTeamOptions(old[i-1]||"")}</select></td></tr>`;
   updatePreview();
 }
+function changeItemNo(delta){
+  const input = $("itemNo");
+  const current = parseInt(input.value || "0", 10);
+  const next = Math.max(1, current + delta);
+  input.value = next;
+  updatePreview();
+}
+
 function makeShareText(){
   const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), eventName=$("eventName").value.trim(), roundName=$("roundName").value;
   const selects=[...document.querySelectorAll(".teamSelect")];
   let text="รายงานผลการแข่งขันกีฬา\n";
-  text += "กลุ่มที่\t" + groupNo + "\n";
   text += "รายการที่\t" + itemNo + "\n";
   text += "รายการแข่งขัน\t" + eventName + "\n";
-  text += "รอบ\t" + roundName + "\n\n";
+  text += "รอบ\t" + roundName + "\n";
+  text += "กลุ่มที่\t" + groupNo + "\n\n";
   text += "อันดับที่\tชื่อหน่วยกีฬา\n";
   selects.forEach((s,i)=> text += (i+1) + "\t" + s.value + "\n");
   return text;
 }
 function makeCsvText(){
   const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), eventName=$("eventName").value.trim(), roundName=$("roundName").value;
-  let rows = [["กลุ่มที่", groupNo],["รายการที่", itemNo],["รายการแข่งขัน", eventName],["รอบ", roundName],[],["อันดับที่","ชื่อหน่วยกีฬา"]];
+  let rows = [["รายการที่", itemNo],["รายการแข่งขัน", eventName],["รอบ", roundName],["กลุ่มที่", groupNo],[],["อันดับที่","ชื่อหน่วยกีฬา"]];
   [...document.querySelectorAll(".teamSelect")].forEach((s,i)=>rows.push([i+1,s.value]));
   return "\ufeff" + rows.map(r=>r.map(csvEscape).join(",")).join("\r\n");
 }
