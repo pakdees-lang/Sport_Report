@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>รายงานอันดับกีฬา</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0b5ed7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="อันดับกีฬา" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    :root{
+      --primary:#0b5ed7;--primary2:#084298;--success:#198754;--danger:#dc3545;--dark:#1f2937;--muted:#6b7280;--bg:#eef3f9;--card:#ffffff;--line:#d9e2ef;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--dark);padding-bottom:90px}
+    .appbar{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;padding:18px 14px 16px;border-bottom-left-radius:20px;border-bottom-right-radius:20px;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+    .appbar h1{font-size:22px;margin:0;text-align:center}.appbar p{margin:5px 0 0;text-align:center;font-size:13px;opacity:.9}
+    .wrap{padding:12px;max-width:760px;margin:auto}.card{background:var(--card);border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 2px 10px rgba(31,41,55,.08);border:1px solid rgba(217,226,239,.9)}
+    .title{font-weight:800;margin-bottom:10px;font-size:17px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}
+    label{display:block;font-size:13px;color:var(--muted);margin:4px 0 5px}input,select{width:100%;font-size:17px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;outline:none}input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(11,94,215,.12)}
+    button{width:100%;border:0;border-radius:14px;padding:13px 12px;font-size:17px;font-weight:800;color:#fff;background:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.12)}button:active{transform:scale(.99)}.success{background:var(--success)}.danger{background:var(--danger)}.gray{background:#4b5563}.outline{background:#fff;color:var(--primary);border:1px solid var(--primary);box-shadow:none}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .team-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.chip{background:#e8f0fe;border:1px solid #c7d7fe;color:#1d4ed8;border-radius:999px;padding:6px 10px;font-size:14px}.chip button{display:inline;width:auto;padding:0 0 0 6px;background:transparent;color:#dc3545;box-shadow:none;font-size:15px}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}th{font-size:13px;color:var(--muted);font-weight:700}td{background:#f8fafc;padding:8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px;text-align:center;font-weight:900;width:76px}td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:18px;font-weight:900}.hint{font-size:13px;color:var(--muted);line-height:1.45}.preview{white-space:pre-wrap;background:#0f172a;color:#e5e7eb;border-radius:14px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow:auto;max-height:220px}.bottom{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:10px;z-index:9}.bottom button{padding:14px 10px}.hidden{display:none}@media (max-width:520px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}.appbar h1{font-size:20px}}
+  </style>
+</head>
+<body>
+  <header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>เลือกอันดับ • เลือกหน่วยกีฬา • แชร์เข้า LINE / Messenger</p></header>
+  <main class="wrap">
+    <section class="card">
+      <div class="title">ตั้งค่าหน่วยกีฬา</div>
+      <label>เพิ่มชื่อหน่วยกีฬาไว้ล่วงหน้า</label>
+      <div class="grid"><input id="teamInput" class="full" placeholder="เช่น สีแดง / สีฟ้า / บ้านแพรกกลาง" /><button onclick="addTeam()" class="success full">+ เพิ่มหน่วยกีฬา</button></div>
+      <div id="teamList" class="team-list"></div>
+      <p class="hint">ชื่อหน่วยกีฬาจะถูกบันทึกไว้ในเครื่องนี้ และนำไปเลือกในตารางอันดับได้ทันที</p>
+    </section>
+
+    <section class="card">
+      <div class="title">ข้อมูลรายการแข่งขัน</div>
+      <div class="grid">
+        <div><label>รายการที่</label><input id="itemNo" placeholder="เช่น 1 หรือ 001" /></div>
+        <div><label>รอบ</label><select id="roundName"><option>รอบคัดเลือก</option><option>รอบชิงชนะเลิศ</option></select></div>
+        <div class="full"><label>รายการแข่งขัน</label><input id="eventName" placeholder="เช่น วิ่ง 100 เมตร ชาย" /></div>
+        <div class="full"><label>ต้องการแสดงกี่อันดับ</label><select id="rankCount" onchange="createRankTable()"></select></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="title">ตารางอันดับ</div>
+      <table><thead><tr><th>อันดับ</th><th>ชื่อหน่วยกีฬา</th></tr></thead><tbody id="rankTable"></tbody></table>
+    </section>
+
+    <section class="card">
+      <div class="title">ตัวอย่างข้อความสำหรับแชร์</div>
+      <div id="preview" class="preview"></div>
+      <div class="row"><button onclick="copyResult()">คัดลอกผล</button><button onclick="clearForm()" class="danger">ล้างรายการ</button></div>
+    </section>
+  </main>
+
+  <div class="bottom"><button onclick="shareResult()" class="success">แชร์ผล</button><button onclick="saveCurrentReport()">บันทึกในเครื่อง</button></div>
+
+<script>
+let teams = JSON.parse(localStorage.getItem("sportTeams") || "[]");
+let lastReport = JSON.parse(localStorage.getItem("lastSportReport") || "null");
+
+const $ = id => document.getElementById(id);
+function setupRankCount(){
+  const select = $("rankCount");
+  select.innerHTML = "";
+  for(let i=1;i<=100;i++){
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = i + " อันดับ";
+    if(i===3) option.selected = true;
+    select.appendChild(option);
+  }
+}
+function saveTeams(){ localStorage.setItem("sportTeams", JSON.stringify(teams)); }
+function renderTeams(){
+  const box = $("teamList"); box.innerHTML = "";
+  teams.forEach((team,i)=>{ box.innerHTML += `<span class="chip">${escapeHtml(team)} <button onclick="deleteTeam(${i})">×</button></span>`; });
+}
+function addTeam(){
+  const team = $("teamInput").value.trim();
+  if(!team){ alert("กรุณากรอกชื่อหน่วยกีฬา"); return; }
+  if(teams.includes(team)){ alert("มีชื่อนี้แล้ว"); return; }
+  teams.push(team); saveTeams(); $("teamInput").value=""; renderTeams(); createRankTable();
+}
+function deleteTeam(i){ if(confirm("ลบชื่อหน่วยกีฬานี้หรือไม่")){ teams.splice(i,1); saveTeams(); renderTeams(); createRankTable(); } }
+function getTeamOptions(selected=""){
+  let html = `<option value="">-- เลือกหน่วยกีฬา --</option>`;
+  teams.forEach(team=>{ html += `<option value="${escapeAttr(team)}" ${team===selected?"selected":""}>${escapeHtml(team)}</option>`; });
+  return html;
+}
+function createRankTable(){
+  const old = [...document.querySelectorAll(".teamSelect")].map(s=>s.value);
+  const count = Number($("rankCount").value); const tbody = $("rankTable"); tbody.innerHTML = "";
+  for(let i=1;i<=count;i++){
+    tbody.innerHTML += `<tr><td><span class="rank-badge">${i}</span></td><td><select class="teamSelect" onchange="updatePreview()">${getTeamOptions(old[i-1]||"")}</select></td></tr>`;
+  }
+  updatePreview();
+}
+function makeShareText(){
+  const itemNo = $("itemNo").value.trim(); const eventName = $("eventName").value.trim(); const roundName = $("roundName").value;
+  const selects = [...document.querySelectorAll(".teamSelect")];
+  let text = "รายงานผลการแข่งขันกีฬา\n";
+  text += "รายการที่\t" + itemNo + "\n";
+  text += "รายการแข่งขัน\t" + eventName + "\n";
+  text += "รอบ\t" + roundName + "\n\n";
+  text += "อันดับที่\tชื่อหน่วยกีฬา\n";
+  selects.forEach((s,i)=> text += (i+1) + "\t" + s.value + "\n");
+  return text;
+}
+function updatePreview(){ $("preview").textContent = makeShareText(); }
+function checkData(){
+  if(!$("itemNo").value.trim()){ alert("กรุณากรอกรายการที่"); return false; }
+  if(!$("eventName").value.trim()){ alert("กรุณากรอกรายการแข่งขัน"); return false; }
+  if(teams.length===0){ alert("กรุณาเพิ่มชื่อหน่วยกีฬาก่อน"); return false; }
+  const empty = [...document.querySelectorAll(".teamSelect")].some(s=>!s.value);
+  if(empty && !confirm("ยังเลือกหน่วยกีฬาไม่ครบ ต้องการดำเนินการต่อหรือไม่")) return false;
+  return true;
+}
+async function shareResult(){
+  if(!checkData()) return; const text = makeShareText();
+  if(navigator.share){ try{ await navigator.share({title:"รายงานผลการแข่งขันกีฬา", text}); }catch(e){} }
+  else{ copyResult(); }
+}
+async function copyResult(){
+  if(!checkData()) return;
+  try{ await navigator.clipboard.writeText(makeShareText()); alert("คัดลอกผลการแข่งขันแล้ว"); }
+  catch(e){ alert("คัดลอกไม่ได้ กรุณาแตะค้างที่ตัวอย่างข้อความแล้วคัดลอกเอง"); }
+}
+function saveCurrentReport(){
+  if(!checkData()) return;
+  const data = {itemNo:$("itemNo").value.trim(), eventName:$("eventName").value.trim(), roundName:$("roundName").value, rankCount:$("rankCount").value, ranks:[...document.querySelectorAll(".teamSelect")].map(s=>s.value)};
+  localStorage.setItem("lastSportReport", JSON.stringify(data)); alert("บันทึกรายการนี้ไว้ในเครื่องแล้ว");
+}
+function clearForm(){
+  if(!confirm("ล้างข้อมูลรายการนี้หรือไม่")) return;
+  $("itemNo").value=""; $("eventName").value=""; $("roundName").value="รอบคัดเลือก"; $("rankCount").value="3"; createRankTable(); updatePreview();
+}
+function loadLast(){
+  if(!lastReport) return;
+  $("itemNo").value = lastReport.itemNo || ""; $("eventName").value = lastReport.eventName || ""; $("roundName").value = lastReport.roundName || "รอบคัดเลือก"; $("rankCount").value = lastReport.rankCount || "3";
+  createRankTable(); [...document.querySelectorAll(".teamSelect")].forEach((s,i)=>{ s.value = (lastReport.ranks||[])[i] || ""; }); updatePreview();
+}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));}
+function escapeAttr(s){return escapeHtml(s).replace(/'/g,"&#039;");}
+["itemNo","eventName","roundName","rankCount"].forEach(id=>setTimeout(()=>$(id).addEventListener("input",updatePreview),0));
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("service-worker.js"); }
+setupRankCount(); renderTeams(); createRankTable(); loadLast();
+</script>
+</body>
+</html>

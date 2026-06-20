@@ -1,0 +1,14 @@
+{
+  "name": "รายงานอันดับการแข่งขันกีฬา",
+  "short_name": "อันดับกีฬา",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef3f9",
+  "theme_color": "#0b5ed7",
+  "orientation": "portrait",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}
