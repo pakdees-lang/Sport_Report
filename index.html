@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="อันดับกีฬา" />
   <link rel="apple-touch-icon" href="icon-192.png" />
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root{--primary:#0b5ed7;--primary2:#084298;--success:#198754;--danger:#dc3545;--warn:#f59e0b;--dark:#1f2937;--muted:#6b7280;--bg:#eef3f9;--card:#ffffff;--line:#d9e2ef}
     *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--dark);padding-bottom:96px}
@@ -32,8 +33,12 @@
     <div class="title">ตั้งค่าหน่วยกีฬา</div>
     <label>เพิ่มชื่อหน่วยกีฬาไว้ล่วงหน้า</label>
     <div class="grid"><input id="teamInput" class="full" placeholder="เช่น สีแดง / สีฟ้า / บ้านแพรกกลาง" /><button onclick="addTeam()" class="success full">+ เพิ่มหน่วยกีฬา</button></div>
+    <div class="row">
+      <a href="team-template.xlsx" download style="text-decoration:none"><button type="button" class="outline">ดาวน์โหลดไฟล์แม่แบบ Excel</button></a>
+      <label style="margin:0"><input id="teamFile" type="file" accept=".xlsx,.xls,.csv" onchange="importTeamsFromFile(event)" style="display:none" /><button type="button" class="warn" onclick="document.getElementById('teamFile').click()">อัปโหลดรายชื่อจาก Excel</button></label>
+    </div>
+    <p class="hint">ไฟล์แม่แบบใช้คอลัมน์แรกชื่อ <b>ชื่อหน่วยกีฬา</b> เช่น สีแดง สีฟ้า หรือชื่อโรงเรียน เมื่ออัปโหลดแล้วระบบจะเพิ่มลง dropdown อัตโนมัติ และบันทึกไว้ในเครื่องนี้</p>
     <div id="teamList" class="team-list"></div>
-    <p class="hint">ชื่อหน่วยกีฬาจะถูกบันทึกไว้ในเครื่องนี้ และนำไปเลือกจาก dropdown ในตารางอันดับได้ทันที</p>
   </section>
 
   <section class="card">
@@ -86,6 +91,64 @@ function addTeam(){
   if(teams.includes(team)){ alert("มีชื่อนี้แล้ว"); return; }
   teams.push(team); saveTeams(); $("teamInput").value=""; renderTeams(); createRankTable();
 }
+function addTeamsBulk(list){
+  let added = 0, skipped = 0;
+  list.map(v => String(v ?? "").trim()).filter(Boolean).forEach(name => {
+    if(!teams.includes(name)){ teams.push(name); added++; } else { skipped++; }
+  });
+  saveTeams(); renderTeams(); createRankTable();
+  alert("นำเข้าชื่อหน่วยกีฬาแล้ว " + added + " รายการ" + (skipped ? "\nข้ามรายการซ้ำ " + skipped + " รายการ" : ""));
+}
+function parseCsvLine(line){
+  const out=[]; let cur="", q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch === '"'){ if(q && line[i+1] === '"'){ cur+='"'; i++; } else q=!q; }
+    else if((ch === "," || ch === "\t" || ch === ";") && !q){ out.push(cur); cur=""; }
+    else cur+=ch;
+  }
+  out.push(cur); return out;
+}
+function importTeamsFromFile(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file) return;
+  const name = file.name.toLowerCase();
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      let names = [];
+      if(name.endsWith(".csv")){
+        const lines = String(e.target.result).replace(/^\ufeff/,"").split(/\r?\n/).filter(x=>x.trim());
+        const rows = lines.map(parseCsvLine);
+        const first = rows[0] || [];
+        const headerIndex = first.findIndex(c => String(c).trim() === "ชื่อหน่วยกีฬา");
+        const start = headerIndex >= 0 ? 1 : 0;
+        names = rows.slice(start).map(r => r[headerIndex >= 0 ? headerIndex : 0]);
+      }else{
+        if(typeof XLSX === "undefined"){
+          alert("ยังโหลดตัวอ่านไฟล์ Excel ไม่สำเร็จ กรุณาต่ออินเทอร์เน็ตแล้วเปิดแอปใหม่ หรือบันทึกไฟล์เป็น CSV แล้วอัปโหลด");
+          event.target.value = "";
+          return;
+        }
+        const workbook = XLSX.read(new Uint8Array(e.target.result), {type:"array"});
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:""});
+        const first = rows[0] || [];
+        const headerIndex = first.findIndex(c => String(c).trim() === "ชื่อหน่วยกีฬา");
+        const start = headerIndex >= 0 ? 1 : 0;
+        names = rows.slice(start).map(r => r[headerIndex >= 0 ? headerIndex : 0]);
+      }
+      addTeamsBulk(names);
+    }catch(err){
+      console.error(err);
+      alert("อ่านไฟล์ไม่สำเร็จ กรุณาตรวจสอบว่าใช้ไฟล์แม่แบบหรือคอลัมน์ชื่อหน่วยกีฬา");
+    }finally{
+      event.target.value = "";
+    }
+  };
+  if(name.endsWith(".csv")) reader.readAsText(file, "utf-8");
+  else reader.readAsArrayBuffer(file);
+}
 function deleteTeam(i){ if(confirm("ลบชื่อหน่วยกีฬานี้หรือไม่")){ teams.splice(i,1); saveTeams(); renderTeams(); createRankTable(); } }
 function getTeamOptions(selected=""){
   let html = `<option value="">-- เลือกหน่วยกีฬา --</option>`;
@@ -110,10 +173,10 @@ function makeShareText(){
   const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), eventName=$("eventName").value.trim(), roundName=$("roundName").value;
   const selects=[...document.querySelectorAll(".teamSelect")];
   let text="รายงานผลการแข่งขันกีฬา\n";
+  text += "กลุ่มที่\t" + groupNo + "\n";
   text += "รายการที่\t" + itemNo + "\n";
   text += "รายการแข่งขัน\t" + eventName + "\n";
-  text += "รอบ\t" + roundName + "\n";
-  text += "กลุ่มที่\t" + groupNo + "\n\n";
+  text += "รอบ\t" + roundName + "\n\n";
   text += "อันดับที่\tชื่อหน่วยกีฬา\n";
   selects.forEach((s,i)=> text += (i+1) + "\t" + s.value + "\n");
   return text;
