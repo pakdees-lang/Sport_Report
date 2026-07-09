@@ -27,7 +27,7 @@
   </style>
 </head>
 <body>
-<header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>รายการที่ → รายการแข่งขัน → รอบ → กลุ่มที่ • เลือกอันดับ 1–100</p></header>
+<header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>รายการที่ → รอบ → กลุ่มที่ • เลือกอันดับ 1–100</p></header>
 <main class="wrap">
   <section class="card">
     <div class="title">ตั้งค่าหน่วยกีฬา</div>
@@ -42,12 +42,11 @@
   </section>
 
   <section class="card">
-    <div class="title">ข้อมูลรายการแข่งขัน</div>
+    <div class="title">ข้อมูลการแข่งขัน</div>
     <div class="grid">
       <div><label>รายการที่</label><input id="itemNo" placeholder="เช่น 1 หรือ 001" /></div>
-      <div><label>รายการแข่งขัน</label><input id="eventName" placeholder="เช่น วิ่ง 100 เมตร ชาย" /></div>
       <div><label>รอบ</label><select id="roundName"><option>รอบคัดเลือก</option><option>รอบชิงชนะเลิศ</option></select></div>
-      <div><label>กลุ่มที่</label><input id="groupNo" placeholder="เช่น 1 / ก / ม.ต้น" /></div>
+      <div><label>กลุ่มที่</label><select id="groupNo"><option value="">-- เลือกกลุ่ม --</option><option>กลุ่มที่ 1</option><option>กลุ่มที่ 2</option><option>กลุ่มที่ 3</option><option>กลุ่มที่ 4</option><option>กลุ่มที่ 5</option><option>กลุ่มที่ 6</option><option>กลุ่มที่ 7</option><option>กลุ่มที่ 8</option><option>กลุ่มที่ 9</option><option>กลุ่มที่ 10</option></select></div>
       <div class="full"><label>ต้องการแสดงกี่อันดับ</label><select id="rankCount" onchange="createRankTable()"></select></div>
     </div>
   </section>
@@ -170,28 +169,26 @@ function changeItemNo(delta){
 }
 
 function makeShareText(){
-  const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), eventName=$("eventName").value.trim(), roundName=$("roundName").value;
+  const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), roundName=$("roundName").value;
   const selects=[...document.querySelectorAll(".teamSelect")];
   let text="รายงานผลการแข่งขันกีฬา\n";
-  text += "กลุ่มที่\t" + groupNo + "\n";
   text += "รายการที่\t" + itemNo + "\n";
-  text += "รายการแข่งขัน\t" + eventName + "\n";
-  text += "รอบ\t" + roundName + "\n\n";
+  text += "รอบ\t" + roundName + "\n";
+  text += "กลุ่มที่\t" + groupNo + "\n\n";
   text += "อันดับที่\tชื่อหน่วยกีฬา\n";
   selects.forEach((s,i)=> text += (i+1) + "\t" + s.value + "\n");
   return text;
 }
 function makeCsvText(){
-  const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), eventName=$("eventName").value.trim(), roundName=$("roundName").value;
-  let rows = [["รายการที่", itemNo],["รายการแข่งขัน", eventName],["รอบ", roundName],["กลุ่มที่", groupNo],[],["อันดับที่","ชื่อหน่วยกีฬา"]];
+  const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), roundName=$("roundName").value;
+  let rows = [["รายการที่", itemNo],["รอบ", roundName],["กลุ่มที่", groupNo],[],["อันดับที่","ชื่อหน่วยกีฬา"]];
   [...document.querySelectorAll(".teamSelect")].forEach((s,i)=>rows.push([i+1,s.value]));
   return "\ufeff" + rows.map(r=>r.map(csvEscape).join(",")).join("\r\n");
 }
 function updatePreview(){ $("preview").textContent = makeShareText(); }
 function checkData(){
-  if(!$("groupNo").value.trim()){ alert("กรุณากรอกกลุ่มที่"); return false; }
   if(!$("itemNo").value.trim()){ alert("กรุณากรอกรายการที่"); return false; }
-  if(!$("eventName").value.trim()){ alert("กรุณากรอกรายการแข่งขัน"); return false; }
+  if(!$("groupNo").value.trim()){ alert("กรุณาเลือกกลุ่มที่"); return false; }
   if(teams.length===0){ alert("กรุณาเพิ่มชื่อหน่วยกีฬาก่อน"); return false; }
   const empty=[...document.querySelectorAll(".teamSelect")].some(s=>!s.value);
   if(empty && !confirm("ยังเลือกหน่วยกีฬาไม่ครบ ต้องการดำเนินการต่อหรือไม่")) return false;
@@ -214,7 +211,7 @@ function exportCsv(){
   a.href=url; a.download="sport_result_"+safeName+".csv"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 function currentReportData(){
-  return {id:Date.now(), groupNo:$("groupNo").value.trim(), itemNo:$("itemNo").value.trim(), eventName:$("eventName").value.trim(), roundName:$("roundName").value, rankCount:$("rankCount").value, ranks:[...document.querySelectorAll(".teamSelect")].map(s=>s.value), createdAt:new Date().toLocaleString("th-TH")};
+  return {id:Date.now(), groupNo:$("groupNo").value.trim(), itemNo:$("itemNo").value.trim(), roundName:$("roundName").value, rankCount:$("rankCount").value, ranks:[...document.querySelectorAll(".teamSelect")].map(s=>s.value), createdAt:new Date().toLocaleString("th-TH")};
 }
 function saveCurrentReport(){
   if(!checkData()) return;
@@ -222,7 +219,7 @@ function saveCurrentReport(){
 }
 function loadReport(id){
   const r=savedReports.find(x=>x.id===id); if(!r) return;
-  $("groupNo").value=r.groupNo||""; $("itemNo").value=r.itemNo||""; $("eventName").value=r.eventName||""; $("roundName").value=r.roundName||"รอบคัดเลือก"; $("rankCount").value=r.rankCount||"3";
+  $("groupNo").value=r.groupNo||""; $("itemNo").value=r.itemNo||""; $("roundName").value=r.roundName||"รอบคัดเลือก"; $("rankCount").value=r.rankCount||"3";
   createRankTable(); [...document.querySelectorAll(".teamSelect")].forEach((s,i)=>{s.value=(r.ranks||[])[i]||""}); updatePreview(); window.scrollTo({top:0,behavior:"smooth"});
 }
 function deleteReport(id){ if(confirm("ลบรายการนี้หรือไม่")){ savedReports=savedReports.filter(x=>x.id!==id); saveReports(); renderSavedReports(); } }
@@ -230,18 +227,18 @@ function renderSavedReports(){
   const box=$("savedReports"); box.innerHTML="";
   if(savedReports.length===0){ box.innerHTML='<p class="hint">ยังไม่มีรายการที่บันทึกไว้</p>'; return; }
   savedReports.forEach(r=>{
-    box.innerHTML += `<div class="saved-item"><div class="saved-title">กลุ่มที่ ${escapeHtml(r.groupNo||"")} • รายการที่ ${escapeHtml(r.itemNo||"")}</div><div class="saved-sub">${escapeHtml(r.eventName||"")} • ${escapeHtml(r.roundName||"")} • ${escapeHtml(r.createdAt||"")}</div><div class="row"><button onclick="loadReport(${r.id})" class="outline">เปิด/แก้ไข</button><button onclick="deleteReport(${r.id})" class="danger">ลบ</button></div></div>`;
+    box.innerHTML += `<div class="saved-item"><div class="saved-title">รายการที่ ${escapeHtml(r.itemNo||"")} • ${escapeHtml(r.roundName||"")} • ${escapeHtml(r.groupNo||"")}</div><div class="saved-sub">${escapeHtml(r.createdAt||"")}</div><div class="row"><button onclick="loadReport(${r.id})" class="outline">เปิด/แก้ไข</button><button onclick="deleteReport(${r.id})" class="danger">ลบ</button></div></div>`;
   });
 }
 function clearSavedReports(){ if(confirm("ล้างประวัติที่บันทึกไว้ทั้งหมดหรือไม่")){ savedReports=[]; saveReports(); renderSavedReports(); } }
 function clearForm(){
   if(!confirm("ล้างข้อมูลรายการนี้หรือไม่")) return;
-  $("groupNo").value=""; $("itemNo").value=""; $("eventName").value=""; $("roundName").value="รอบคัดเลือก"; $("rankCount").value="3"; createRankTable(); updatePreview();
+  $("groupNo").value=""; $("itemNo").value=""; $("roundName").value="รอบคัดเลือก"; $("rankCount").value="3"; createRankTable(); updatePreview();
 }
 function csvEscape(v){ v=String(v??""); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));}
 function escapeAttr(s){return escapeHtml(s).replace(/'/g,"&#039;");}
-["groupNo","itemNo","eventName","roundName","rankCount"].forEach(id=>setTimeout(()=>$(id).addEventListener("input",updatePreview),0));
+["groupNo","itemNo","roundName","rankCount"].forEach(id=>setTimeout(()=>$(id).addEventListener("input",updatePreview),0));
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("service-worker.js"); }
 setupRankCount(); renderTeams(); createRankTable(); renderSavedReports();
 </script>
