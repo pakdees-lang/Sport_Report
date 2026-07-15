@@ -1,6 +1,6 @@
 {
-  "name": "รายงานอันดับการแข่งขันกีฬา",
-  "short_name": "อันดับกีฬา",
+  "name": "รายงานผลการแข่งขันกีฬา v8",
+  "short_name": "Sport Report",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

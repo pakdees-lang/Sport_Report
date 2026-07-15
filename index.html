@@ -23,28 +23,56 @@
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
     .team-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.chip{background:#e8f0fe;border:1px solid #c7d7fe;color:#1d4ed8;border-radius:999px;padding:6px 10px;font-size:14px}.chip button{display:inline;width:auto;padding:0 0 0 6px;background:transparent;color:#dc3545;box-shadow:none;font-size:15px}
     table{width:100%;border-collapse:separate;border-spacing:0 8px} th{font-size:13px;color:var(--muted);font-weight:700} td{background:#f8fafc;padding:8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)} td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px;text-align:center;font-weight:900;width:76px} td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:18px;font-weight:900}
-    .hint{font-size:13px;color:var(--muted);line-height:1.45}.preview{white-space:pre-wrap;background:#0f172a;color:#e5e7eb;border-radius:14px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow:auto;max-height:240px}.saved-item{border:1px solid var(--line);background:#f8fafc;border-radius:14px;padding:10px;margin-top:8px}.saved-title{font-weight:800}.saved-sub{font-size:13px;color:var(--muted);margin:3px 0 8px}.bottom{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:10px;z-index:9}.bottom button{padding:14px 10px}.hidden{display:none}@media (max-width:560px){.grid,.row,.row3{grid-template-columns:1fr}.appbar h1{font-size:20px}}
+    .hint{font-size:13px;color:var(--muted);line-height:1.45}.preview{white-space:pre-wrap;background:#0f172a;color:#e5e7eb;border-radius:14px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow:auto;max-height:240px}.saved-item{border:1px solid var(--line);background:#f8fafc;border-radius:14px;padding:10px;margin-top:8px}.saved-title{font-weight:800}.saved-sub{font-size:13px;color:var(--muted);margin:3px 0 8px}.bottom{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:10px;z-index:9}.bottom button{padding:14px 10px}.hidden{display:none}
+    .section-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fff;color:var(--dark);border:1px solid var(--line);box-shadow:none;text-align:left}
+    .section-toggle .toggle-icon{font-size:18px;color:var(--primary)}
+    .lookup-box{margin-top:8px;padding:12px;border-radius:12px;background:#eef6ff;border:1px solid #bfdbfe;color:#1e3a8a;min-height:48px;font-weight:700}
+    .lookup-box.not-found{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+    .settings-panel{margin-top:12px}@media (max-width:560px){.grid,.row,.row3{grid-template-columns:1fr}.appbar h1{font-size:20px}}
   </style>
 </head>
 <body>
-<header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>กลุ่มที่แสดงเฉพาะรอบคัดเลือก • เลือกอันดับ 1–100</p></header>
+<header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>กรอกเลขรายการแล้วแสดงชื่อรายการอัตโนมัติ • เลือกอันดับ 1–100</p></header>
 <main class="wrap">
   <section class="card">
-    <div class="title">ตั้งค่าหน่วยกีฬา</div>
-    <label>เพิ่มชื่อหน่วยกีฬาไว้ล่วงหน้า</label>
-    <div class="grid"><input id="teamInput" class="full" placeholder="เช่น สีแดง / สีฟ้า / บ้านแพรกกลาง" /><button onclick="addTeam()" class="success full">+ เพิ่มหน่วยกีฬา</button></div>
-    <div class="row">
-      <a href="team-template.xlsx" download style="text-decoration:none"><button type="button" class="outline">ดาวน์โหลดไฟล์แม่แบบ Excel</button></a>
-      <label style="margin:0"><input id="teamFile" type="file" accept=".xlsx,.xls,.csv" onchange="importTeamsFromFile(event)" style="display:none" /><button type="button" class="warn" onclick="document.getElementById('teamFile').click()">อัปโหลดรายชื่อจาก Excel</button></label>
+    <button type="button" class="section-toggle" onclick="togglePanel('teamSettingsPanel','teamToggleIcon')">
+      <span>⚙ ตั้งค่าหน่วยกีฬา</span><span id="teamToggleIcon" class="toggle-icon">▶</span>
+    </button>
+    <div id="teamSettingsPanel" class="settings-panel hidden">
+      <label>เพิ่มชื่อหน่วยกีฬาไว้ล่วงหน้า</label>
+      <div class="grid"><input id="teamInput" class="full" placeholder="เช่น สีแดง / สีฟ้า / บ้านแพรกกลาง" /><button onclick="addTeam()" class="success full">+ เพิ่มหน่วยกีฬา</button></div>
+      <div class="row">
+        <a href="team-template.xlsx" download style="text-decoration:none"><button type="button" class="outline">ดาวน์โหลดแม่แบบหน่วยกีฬา</button></a>
+        <label style="margin:0"><input id="teamFile" type="file" accept=".xlsx,.xls,.csv" onchange="importTeamsFromFile(event)" style="display:none" /><button type="button" class="warn" onclick="document.getElementById('teamFile').click()">อัปโหลดหน่วยกีฬา</button></label>
+      </div>
+      <p class="hint">ไฟล์แม่แบบใช้คอลัมน์ชื่อ <b>ชื่อหน่วยกีฬา</b> เมื่ออัปโหลดแล้วระบบจะเพิ่มลง dropdown และบันทึกไว้ในโทรศัพท์เครื่องนี้</p>
+      <div id="teamList" class="team-list"></div>
     </div>
-    <p class="hint">ไฟล์แม่แบบใช้คอลัมน์แรกชื่อ <b>ชื่อหน่วยกีฬา</b> เช่น สีแดง สีฟ้า หรือชื่อโรงเรียน เมื่ออัปโหลดแล้วระบบจะเพิ่มลง dropdown อัตโนมัติ และบันทึกไว้ในเครื่องนี้</p>
-    <div id="teamList" class="team-list"></div>
+  </section>
+
+  
+  <section class="card">
+    <button type="button" class="section-toggle" onclick="togglePanel('eventSettingsPanel','eventToggleIcon')">
+      <span>📋 ตั้งค่ารายการแข่งขัน</span><span id="eventToggleIcon" class="toggle-icon">▶</span>
+    </button>
+    <div id="eventSettingsPanel" class="settings-panel hidden">
+      <div class="row">
+        <a href="event-template.xlsx" download style="text-decoration:none"><button type="button" class="outline">ดาวน์โหลดแม่แบบรายการแข่งขัน</button></a>
+        <label style="margin:0"><input id="eventFile" type="file" accept=".xlsx,.xls,.csv" onchange="importEventsFromFile(event)" style="display:none" /><button type="button" class="warn" onclick="document.getElementById('eventFile').click()">อัปโหลดรายการแข่งขัน</button></label>
+      </div>
+      <p class="hint">ไฟล์ต้องมี 4 คอลัมน์ คือ <b>รายการที่</b>, <b>ประเภท</b>, <b>รุ่นอายุ</b> และ <b>รอบ</b> เมื่อกรอกเลขรายการ ระบบจะดึงข้อมูลและเลือกรอบให้อัตโนมัติ</p>
+      <div class="row"><button type="button" class="outline" onclick="renderEventDatabase()">แสดงรายการที่นำเข้า</button><button type="button" class="danger" onclick="clearEventDatabase()">ล้างฐานข้อมูลรายการแข่งขัน</button></div>
+      <div id="eventDatabaseList"></div>
+    </div>
   </section>
 
   <section class="card">
     <div class="title">ข้อมูลการแข่งขัน</div>
     <div class="grid">
-      <div><label>รายการที่</label><input id="itemNo" placeholder="เช่น 1 หรือ 001" /></div>
+      <div class="full"><label>รายการที่</label><input id="itemNo" inputmode="numeric" placeholder="กรอกเลขรายการ เช่น 1" oninput="lookupEventByItemNo()" /></div>
+      <div class="full"><label>ข้อมูลรายการแข่งขัน</label>
+        <div id="eventNameDisplay" class="lookup-box">กรอกเลขรายการเพื่อค้นหาข้อมูลการแข่งขัน</div>
+      </div>
       <div><label>รอบ</label><select id="roundName" onchange="toggleGroupField()"><option>รอบคัดเลือก</option><option>รอบชิงชนะเลิศ</option></select></div>
       <div id="groupField"><label>กลุ่มที่</label><select id="groupNo"><option value="">-- เลือกกลุ่ม --</option><option>กลุ่มที่ 1</option><option>กลุ่มที่ 2</option></select></div>
       <div class="full"><label>ต้องการแสดงกี่อันดับ</label><select id="rankCount" onchange="createRankTable()"></select></div>
@@ -72,8 +100,126 @@
 <script>
 let teams = JSON.parse(localStorage.getItem("sportTeams") || "[]");
 let savedReports = JSON.parse(localStorage.getItem("sportReportsV2") || "[]");
+let eventDatabase = JSON.parse(localStorage.getItem("sportEventDatabaseV8") || "[]");
+if(!Array.isArray(eventDatabase)) eventDatabase=[];
 const $ = id => document.getElementById(id);
 
+
+function togglePanel(panelId, iconId){
+  const panel=$(panelId), icon=$(iconId);
+  panel.classList.toggle("hidden");
+  icon.textContent = panel.classList.contains("hidden") ? "▶" : "▼";
+}
+function normalizeItemNo(value){
+  const s=String(value ?? "").trim();
+  if(!s) return "";
+  const n=Number(s);
+  return Number.isFinite(n) ? String(n) : s.replace(/^0+(?=\d)/,"");
+}
+function normalizeRound(value){
+  const s=String(value ?? "").trim().replace(/^รอบ/,"");
+  if(s === "คัดเลือก") return "รอบคัดเลือก";
+  if(s === "ชิงชนะเลิศ") return "รอบชิงชนะเลิศ";
+  return "";
+}
+function saveEventDatabase(){ localStorage.setItem("sportEventDatabaseV8", JSON.stringify(eventDatabase)); }
+function findCurrentEvent(){
+  const key=normalizeItemNo($("itemNo").value);
+  return eventDatabase.find(x=>normalizeItemNo(x.itemNo)===key) || null;
+}
+function lookupEventByItemNo(){
+  const raw=$("itemNo").value.trim();
+  const box=$("eventNameDisplay");
+  if(!raw){
+    box.textContent="กรอกเลขรายการเพื่อค้นหาข้อมูลการแข่งขัน";
+    box.classList.remove("not-found");
+    updatePreview();
+    return;
+  }
+  const found=findCurrentEvent();
+  if(found){
+    box.innerHTML=`<div><b>${escapeHtml(found.type)}</b></div><div>${escapeHtml(found.ageGroup)}</div><div>${escapeHtml(normalizeRound(found.round) || found.round)}</div>`;
+    box.classList.remove("not-found");
+    const roundValue=normalizeRound(found.round);
+    if(roundValue){
+      $("roundName").value=roundValue;
+      toggleGroupField();
+    }
+  }else{
+    box.textContent="ไม่พบรายการที่ "+raw+" ในฐานข้อมูล";
+    box.classList.add("not-found");
+  }
+  updatePreview();
+}
+function getCurrentEventName(){
+  const found=findCurrentEvent();
+  return found ? `${found.type} ${found.ageGroup}`.trim() : "";
+}
+function addEventsBulk(rows){
+  let added=0, updated=0, skipped=0;
+  rows.forEach(row=>{
+    const itemNo=normalizeItemNo(row.itemNo);
+    const type=String(row.type ?? "").trim();
+    const ageGroup=String(row.ageGroup ?? "").trim();
+    const round=String(row.round ?? "").trim();
+    if(!itemNo || !type || !ageGroup || !round){ skipped++; return; }
+    const existing=eventDatabase.find(x=>normalizeItemNo(x.itemNo)===itemNo);
+    const record={itemNo,type,ageGroup,round};
+    if(existing){ Object.assign(existing,record); updated++; }
+    else{ eventDatabase.push(record); added++; }
+  });
+  eventDatabase.sort((a,b)=>(Number(a.itemNo)||999999)-(Number(b.itemNo)||999999));
+  saveEventDatabase(); renderEventDatabase(); lookupEventByItemNo();
+  alert("นำเข้ารายการแข่งขันแล้ว "+added+" รายการ"+(updated?"\nปรับปรุงรายการเดิม "+updated+" รายการ":"")+(skipped?"\nข้ามข้อมูลไม่สมบูรณ์ "+skipped+" แถว":""));
+}
+function importEventsFromFile(event){
+  const file=event.target.files && event.target.files[0];
+  if(!file) return;
+  const name=file.name.toLowerCase();
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      let rows=[];
+      const convertData=(data)=>{
+        const headers=(data[0]||[]).map(x=>String(x).trim());
+        const iNo=headers.indexOf("รายการที่");
+        const iType=headers.indexOf("ประเภท");
+        const iAge=headers.indexOf("รุ่นอายุ");
+        const iRound=headers.indexOf("รอบ");
+        if([iNo,iType,iAge,iRound].some(i=>i<0)) throw new Error("missing headers");
+        return data.slice(1).map(r=>({itemNo:r[iNo],type:r[iType],ageGroup:r[iAge],round:r[iRound]}));
+      };
+      if(name.endsWith(".csv")){
+        const lines=String(e.target.result).replace(/^\ufeff/,"").split(/\r?\n/).filter(x=>x.trim());
+        rows=convertData(lines.map(parseCsvLine));
+      }else{
+        if(typeof XLSX==="undefined"){
+          alert("ยังโหลดตัวอ่าน Excel ไม่สำเร็จ กรุณาต่ออินเทอร์เน็ตแล้วเปิดแอปใหม่ หรือบันทึกไฟล์เป็น CSV");
+          event.target.value=""; return;
+        }
+        const workbook=XLSX.read(new Uint8Array(e.target.result),{type:"array"});
+        const sheet=workbook.Sheets[workbook.SheetNames[0]];
+        rows=convertData(XLSX.utils.sheet_to_json(sheet,{header:1,defval:""}));
+      }
+      addEventsBulk(rows);
+    }catch(err){
+      console.error(err);
+      alert('อ่านไฟล์ไม่สำเร็จ กรุณาตรวจสอบหัวคอลัมน์ "รายการที่", "ประเภท", "รุ่นอายุ" และ "รอบ"');
+    }finally{ event.target.value=""; }
+  };
+  if(name.endsWith(".csv")) reader.readAsText(file,"utf-8"); else reader.readAsArrayBuffer(file);
+}
+function renderEventDatabase(){
+  const box=$("eventDatabaseList");
+  if(eventDatabase.length===0){ box.innerHTML='<p class="hint">ยังไม่มีฐานข้อมูลรายการแข่งขัน</p>'; return; }
+  box.innerHTML=eventDatabase.map((x,i)=>`<div class="saved-item"><div class="saved-title">รายการที่ ${escapeHtml(x.itemNo)} • ${escapeHtml(x.type)}</div><div class="saved-sub">${escapeHtml(x.ageGroup)} • ${escapeHtml(normalizeRound(x.round) || x.round)}</div><button class="danger" onclick="deleteEventItem(${i})">ลบรายการนี้</button></div>`).join("");
+}
+function deleteEventItem(i){
+  if(confirm("ลบรายการแข่งขันนี้หรือไม่")){ eventDatabase.splice(i,1); saveEventDatabase(); renderEventDatabase(); lookupEventByItemNo(); }
+}
+function clearEventDatabase(){
+  if(confirm("ล้างฐานข้อมูลรายการแข่งขันทั้งหมดหรือไม่")){ eventDatabase=[]; saveEventDatabase(); renderEventDatabase(); lookupEventByItemNo(); }
+}
 function setupRankCount(){
   const select = $("rankCount"); select.innerHTML = "";
   for(let i=1;i<=100;i++){ const option=document.createElement("option"); option.value=i; option.textContent=i+" อันดับ"; if(i===3) option.selected=true; select.appendChild(option); }
@@ -180,6 +326,11 @@ function makeShareText(){
   const selects=[...document.querySelectorAll(".teamSelect")];
   let text="รายงานผลการแข่งขันกีฬา\n";
   text += "รายการที่\t" + itemNo + "\n";
+  const eventData=findCurrentEvent();
+  if(eventData){
+    text += "ประเภท\t" + eventData.type + "\n";
+    text += "รุ่นอายุ\t" + eventData.ageGroup + "\n";
+  }
   text += "รอบ\t" + roundName + "\n";
   if(roundName === "รอบคัดเลือก") text += "กลุ่มที่\t" + groupNo + "\n";
   text += "\nอันดับที่\tชื่อหน่วยกีฬา\n";
@@ -188,7 +339,13 @@ function makeShareText(){
 }
 function makeCsvText(){
   const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), roundName=$("roundName").value;
-  let rows = [["รายการที่", itemNo],["รอบ", roundName]];
+  let rows = [["รายการที่", itemNo]];
+  const eventData=findCurrentEvent();
+  if(eventData){
+    rows.push(["ประเภท", eventData.type]);
+    rows.push(["รุ่นอายุ", eventData.ageGroup]);
+  }
+  rows.push(["รอบ", roundName]);
   if(roundName === "รอบคัดเลือก") rows.push(["กลุ่มที่", groupNo]);
   rows.push([],["อันดับที่","ชื่อหน่วยกีฬา"]);
   [...document.querySelectorAll(".teamSelect")].forEach((s,i)=>rows.push([i+1,s.value]));
@@ -197,6 +354,7 @@ function makeCsvText(){
 function updatePreview(){ $("preview").textContent = makeShareText(); }
 function checkData(){
   if(!$("itemNo").value.trim()){ alert("กรุณากรอกรายการที่"); return false; }
+  if(eventDatabase.length>0 && !getCurrentEventName()){ alert("ไม่พบเลขรายการนี้ในฐานข้อมูลรายการแข่งขัน"); return false; }
   if($("roundName").value === "รอบคัดเลือก" && !$("groupNo").value.trim()){ alert("กรุณาเลือกกลุ่มที่"); return false; }
   if(teams.length===0){ alert("กรุณาเพิ่มชื่อหน่วยกีฬาก่อน"); return false; }
   const empty=[...document.querySelectorAll(".teamSelect")].some(s=>!s.value);
@@ -220,7 +378,7 @@ function exportCsv(){
   a.href=url; a.download="sport_result_"+safeName+".csv"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 function currentReportData(){
-  return {id:Date.now(), groupNo:$("roundName").value === "รอบคัดเลือก" ? $("groupNo").value.trim() : "", itemNo:$("itemNo").value.trim(), roundName:$("roundName").value, rankCount:$("rankCount").value, ranks:[...document.querySelectorAll(".teamSelect")].map(s=>s.value), createdAt:new Date().toLocaleString("th-TH")};
+  return {id:Date.now(), groupNo:$("roundName").value === "รอบคัดเลือก" ? $("groupNo").value.trim() : "", itemNo:$("itemNo").value.trim(), eventName:getCurrentEventName(), eventData:findCurrentEvent(), roundName:$("roundName").value, rankCount:$("rankCount").value, ranks:[...document.querySelectorAll(".teamSelect")].map(s=>s.value), createdAt:new Date().toLocaleString("th-TH")};
 }
 function saveCurrentReport(){
   if(!checkData()) return;
@@ -228,7 +386,7 @@ function saveCurrentReport(){
 }
 function loadReport(id){
   const r=savedReports.find(x=>x.id===id); if(!r) return;
-  $("itemNo").value=r.itemNo||""; $("roundName").value=r.roundName||"รอบคัดเลือก"; $("groupNo").value=r.groupNo||""; $("rankCount").value=r.rankCount||"3"; toggleGroupField();
+  $("itemNo").value=r.itemNo||""; lookupEventByItemNo(); $("roundName").value=r.roundName||"รอบคัดเลือก"; $("groupNo").value=r.groupNo||""; $("rankCount").value=r.rankCount||"3"; toggleGroupField();
   createRankTable(); [...document.querySelectorAll(".teamSelect")].forEach((s,i)=>{s.value=(r.ranks||[])[i]||""}); updatePreview(); window.scrollTo({top:0,behavior:"smooth"});
 }
 function deleteReport(id){ if(confirm("ลบรายการนี้หรือไม่")){ savedReports=savedReports.filter(x=>x.id!==id); saveReports(); renderSavedReports(); } }
@@ -237,20 +395,20 @@ function renderSavedReports(){
   if(savedReports.length===0){ box.innerHTML='<p class="hint">ยังไม่มีรายการที่บันทึกไว้</p>'; return; }
   savedReports.forEach(r=>{
     const groupText = r.roundName === "รอบคัดเลือก" && r.groupNo ? " • " + escapeHtml(r.groupNo) : "";
-    box.innerHTML += `<div class="saved-item"><div class="saved-title">รายการที่ ${escapeHtml(r.itemNo||"")} • ${escapeHtml(r.roundName||"")}${groupText}</div><div class="saved-sub">${escapeHtml(r.createdAt||"")}</div><div class="row"><button onclick="loadReport(${r.id})" class="outline">เปิด/แก้ไข</button><button onclick="deleteReport(${r.id})" class="danger">ลบ</button></div></div>`;
+    box.innerHTML += `<div class="saved-item"><div class="saved-title">รายการที่ ${escapeHtml(r.itemNo||"")} • ${escapeHtml(r.roundName||"")}${groupText}</div><div class="saved-sub">${r.eventData ? escapeHtml(r.eventData.type+" • "+r.eventData.ageGroup)+"<br>" : (r.eventName ? escapeHtml(r.eventName)+"<br>" : "")}${escapeHtml(r.createdAt||"")}</div><div class="row"><button onclick="loadReport(${r.id})" class="outline">เปิด/แก้ไข</button><button onclick="deleteReport(${r.id})" class="danger">ลบ</button></div></div>`;
   });
 }
 function clearSavedReports(){ if(confirm("ล้างประวัติที่บันทึกไว้ทั้งหมดหรือไม่")){ savedReports=[]; saveReports(); renderSavedReports(); } }
 function clearForm(){
   if(!confirm("ล้างข้อมูลรายการนี้หรือไม่")) return;
-  $("groupNo").value=""; $("itemNo").value=""; $("roundName").value="รอบคัดเลือก"; $("rankCount").value="3"; toggleGroupField(); createRankTable(); updatePreview();
+  $("groupNo").value=""; $("itemNo").value=""; lookupEventByItemNo(); $("roundName").value="รอบคัดเลือก"; $("rankCount").value="3"; toggleGroupField(); createRankTable(); updatePreview();
 }
 function csvEscape(v){ v=String(v??""); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));}
 function escapeAttr(s){return escapeHtml(s).replace(/'/g,"&#039;");}
-["groupNo","itemNo","roundName","rankCount"].forEach(id=>setTimeout(()=>$(id).addEventListener("input",updatePreview),0));
+["groupNo","roundName","rankCount"].forEach(id=>setTimeout(()=>$(id).addEventListener("input",updatePreview),0));
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("service-worker.js"); }
-setupRankCount(); renderTeams(); toggleGroupField(); createRankTable(); renderSavedReports();
+setupRankCount(); renderTeams(); renderEventDatabase(); toggleGroupField(); lookupEventByItemNo(); createRankTable(); renderSavedReports();
 </script>
 </body>
 </html>

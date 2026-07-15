@@ -1,5 +1,6 @@
-const CACHE_NAME = "sport-report-v6";
-const ASSETS = ["./", "./index.html", "./manifest.json", "./service-worker.js", "./icon-192.png", "./icon-512.png", "./team-template.xlsx"];
+const CACHE_NAME = "sport-report-v8";
+const ASSETS = ["./", "./index.html", "./manifest.json", "./service-worker.js", "./icon-192.png", "./icon-512.png", "./team-template.xlsx",
+  "./event-template.xlsx"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();
