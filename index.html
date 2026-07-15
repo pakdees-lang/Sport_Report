@@ -32,7 +32,7 @@
   </style>
 </head>
 <body>
-<header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>กรอกเลขรายการแล้วแสดงชื่อรายการอัตโนมัติ • เลือกอันดับ 1–100</p></header>
+<header class="appbar"><h1>รายงานอันดับการแข่งขันกีฬา</h1><p>กรอกเลขรายการแล้วดึงข้อมูลการแข่งขันอัตโนมัติ • เลือกอันดับ 1–100</p></header>
 <main class="wrap">
   <section class="card">
     <button type="button" class="section-toggle" onclick="togglePanel('teamSettingsPanel','teamToggleIcon')">
@@ -60,8 +60,9 @@
         <a href="event-template.xlsx" download style="text-decoration:none"><button type="button" class="outline">ดาวน์โหลดแม่แบบรายการแข่งขัน</button></a>
         <label style="margin:0"><input id="eventFile" type="file" accept=".xlsx,.xls,.csv" onchange="importEventsFromFile(event)" style="display:none" /><button type="button" class="warn" onclick="document.getElementById('eventFile').click()">อัปโหลดรายการแข่งขัน</button></label>
       </div>
-      <p class="hint">ไฟล์ต้องมี 4 คอลัมน์ คือ <b>รายการที่</b>, <b>ประเภท</b>, <b>รุ่นอายุ</b> และ <b>รอบ</b> เมื่อกรอกเลขรายการ ระบบจะดึงข้อมูลและเลือกรอบให้อัตโนมัติ</p>
-      <div class="row"><button type="button" class="outline" onclick="renderEventDatabase()">แสดงรายการที่นำเข้า</button><button type="button" class="danger" onclick="clearEventDatabase()">ล้างฐานข้อมูลรายการแข่งขัน</button></div>
+      <p class="hint">ไฟล์ต้องมี 4 คอลัมน์ คือ <b>รายการที่</b>, <b>ประเภท</b>, <b>รุ่นอายุ</b> และ <b>รอบ</b> เมื่อกรอกเลขรายการ ระบบจะดึงประเภท รุ่นอายุ และรอบจากฐานข้อมูลให้อัตโนมัติ แอปมีฐานข้อมูลเริ่มต้น 151 รายการอยู่แล้ว</p>
+      <div class="row"><button type="button" class="outline" onclick="renderEventDatabase()">แสดงฐานข้อมูล</button><button type="button" class="warn" onclick="restoreDefaultEventDatabase()">คืนค่าฐานข้อมูลเริ่มต้น</button></div>
+      <div class="row"><button type="button" class="danger" onclick="clearEventDatabase()">ล้างฐานข้อมูลรายการแข่งขัน</button><div></div></div>
       <div id="eventDatabaseList"></div>
     </div>
   </section>
@@ -73,7 +74,6 @@
       <div class="full"><label>ข้อมูลรายการแข่งขัน</label>
         <div id="eventNameDisplay" class="lookup-box">กรอกเลขรายการเพื่อค้นหาข้อมูลการแข่งขัน</div>
       </div>
-      <div><label>รอบ</label><select id="roundName" onchange="toggleGroupField()"><option>รอบคัดเลือก</option><option>รอบชิงชนะเลิศ</option></select></div>
       <div id="groupField"><label>กลุ่มที่</label><select id="groupNo"><option value="">-- เลือกกลุ่ม --</option><option>กลุ่มที่ 1</option><option>กลุ่มที่ 2</option></select></div>
       <div class="full"><label>ต้องการแสดงกี่อันดับ</label><select id="rankCount" onchange="createRankTable()"></select></div>
     </div>
@@ -100,8 +100,19 @@
 <script>
 let teams = JSON.parse(localStorage.getItem("sportTeams") || "[]");
 let savedReports = JSON.parse(localStorage.getItem("sportReportsV2") || "[]");
-let eventDatabase = JSON.parse(localStorage.getItem("sportEventDatabaseV8") || "[]");
-if(!Array.isArray(eventDatabase)) eventDatabase=[];
+const DEFAULT_EVENT_DATABASE = [{"itemNo":"101","type":"วิ่ง 3,000 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"102","type":"วิ่ง 3,000 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"103","type":"วิ่ง 100 เมตร","ageGroup":"6 ปี ชาย","round":"คัดเลือก"},{"itemNo":"104","type":"วิ่ง 100 เมตร","ageGroup":"6 ปี หญิง","round":"คัดเลือก"},{"itemNo":"105","type":"วิ่ง 100 เมตร","ageGroup":"8 ปี ชาย","round":"คัดเลือก"},{"itemNo":"106","type":"วิ่ง 100 เมตร","ageGroup":"8 ปี หญิง","round":"คัดเลือก"},{"itemNo":"107","type":"วิ่ง 100 เมตร","ageGroup":"10 ปี ชาย","round":"คัดเลือก"},{"itemNo":"108","type":"วิ่ง 100 เมตร","ageGroup":"10 ปี หญิง","round":"คัดเลือก"},{"itemNo":"109","type":"วิ่ง 100 เมตร","ageGroup":"12 ปี ชาย","round":"คัดเลือก"},{"itemNo":"110","type":"วิ่ง 100 เมตร","ageGroup":"12 ปี หญิง","round":"คัดเลือก"},{"itemNo":"111","type":"วิ่ง 100 เมตร","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"112","type":"วิ่ง 100 เมตร","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"113","type":"วิ่ง 100 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"114","type":"วิ่ง 100 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"115","type":"วิ่ง 100 เมตร","ageGroup":"6 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"116","type":"วิ่ง 100 เมตร","ageGroup":"6 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"117","type":"วิ่ง 100 เมตร","ageGroup":"8 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"118","type":"วิ่ง 100 เมตร","ageGroup":"8 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"119","type":"วิ่ง 100 เมตร","ageGroup":"10 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"120","type":"วิ่ง 100 เมตร","ageGroup":"10 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"121","type":"วิ่ง 100 เมตร","ageGroup":"12 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"122","type":"วิ่ง 100 เมตร","ageGroup":"12 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"123","type":"วิ่งผลัด 4 × 300 เมตร","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"124","type":"วิ่งผลัด 4 × 300 เมตร","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"125","type":"วิ่งผลัด 4 × 300 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"126","type":"วิ่งผลัด 4 × 300 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"127","type":"ทุ่มน้ำหนัก","ageGroup":"10 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"128","type":"ทุ่มน้ำหนัก","ageGroup":"10 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"129","type":"ทุ่มน้ำหนัก","ageGroup":"12 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"130","type":"ทุ่มน้ำหนัก","ageGroup":"12 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"131","type":"ทุ่มน้ำหนัก","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"132","type":"ทุ่มน้ำหนัก","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"133","type":"ทุ่มน้ำหนัก","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"134","type":"ทุ่มน้ำหนัก","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"135","type":"โยนบอลใส่ตะกร้า","ageGroup":"4 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"136","type":"โยนบอลใส่ตะกร้า","ageGroup":"4 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"137","type":"โยนบอลใส่ตะกร้า","ageGroup":"6 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"138","type":"โยนบอลใส่ตะกร้า","ageGroup":"6 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"201","type":"วิ่ง 1,500 เมตร","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"202","type":"วิ่ง 1,500 เมตร","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"203","type":"วิ่ง 1,500 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"204","type":"วิ่ง 1,500 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"205","type":"วิ่ง 40 เมตร","ageGroup":"4 ปี ชาย","round":"คัดเลือก"},{"itemNo":"206","type":"วิ่ง 40 เมตร","ageGroup":"4 ปี หญิง","round":"คัดเลือก"},{"itemNo":"207","type":"วิ่ง 40 เมตร","ageGroup":"6 ปี ชาย","round":"คัดเลือก"},{"itemNo":"208","type":"วิ่ง 40 เมตร","ageGroup":"6 ปี หญิง","round":"คัดเลือก"},{"itemNo":"209","type":"วิ่งผลัด 4 × 400 เมตร","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"210","type":"วิ่งผลัด 4 × 400 เมตร","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"211","type":"วิ่งผลัด 4 × 400 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"212","type":"วิ่งผลัด 4 × 400 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"213","type":"วิ่ง 80 เมตร","ageGroup":"6 ปี ชาย","round":"คัดเลือก"},{"itemNo":"214","type":"วิ่ง 80 เมตร","ageGroup":"6 ปี หญิง","round":"คัดเลือก"},{"itemNo":"215","type":"วิ่ง 80 เมตร","ageGroup":"8 ปี ชาย","round":"คัดเลือก"},{"itemNo":"216","type":"วิ่ง 80 เมตร","ageGroup":"8 ปี หญิง","round":"คัดเลือก"},{"itemNo":"217","type":"วิ่ง 80 เมตร","ageGroup":"10 ปี ชาย","round":"คัดเลือก"},{"itemNo":"218","type":"วิ่ง 80 เมตร","ageGroup":"10 ปี หญิง","round":"คัดเลือก"},{"itemNo":"219","type":"วิ่ง 80 เมตร","ageGroup":"12 ปี ชาย","round":"คัดเลือก"},{"itemNo":"220","type":"วิ่ง 80 เมตร","ageGroup":"12 ปี หญิง","round":"คัดเลือก"},{"itemNo":"221","type":"วิ่ง 200 เมตร","ageGroup":"10 ปี ชาย","round":"คัดเลือก"},{"itemNo":"222","type":"วิ่ง 200 เมตร","ageGroup":"10 ปี หญิง","round":"คัดเลือก"},{"itemNo":"223","type":"วิ่ง 200 เมตร","ageGroup":"12 ปี ชาย","round":"คัดเลือก"},{"itemNo":"224","type":"วิ่ง 200 เมตร","ageGroup":"12 ปี หญิง","round":"คัดเลือก"},{"itemNo":"225","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"8 ปี ชาย","round":"คัดเลือก"},{"itemNo":"226","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"8 ปี หญิง","round":"คัดเลือก"},{"itemNo":"227","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"12 ปี ชาย","round":"คัดเลือก"},{"itemNo":"228","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"12 ปี หญิง","round":"คัดเลือก"},{"itemNo":"229","type":"วิ่ง 40 เมตร","ageGroup":"4 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"230","type":"วิ่ง 40 เมตร","ageGroup":"4 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"231","type":"วิ่ง 40 เมตร","ageGroup":"6 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"232","type":"วิ่ง 40 เมตร","ageGroup":"6 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"233","type":"วิ่ง 80 เมตร","ageGroup":"6 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"234","type":"วิ่ง 80 เมตร","ageGroup":"6 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"235","type":"วิ่ง 80 เมตร","ageGroup":"8 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"236","type":"วิ่ง 80 เมตร","ageGroup":"8 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"237","type":"วิ่ง 80 เมตร","ageGroup":"10 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"238","type":"วิ่ง 80 เมตร","ageGroup":"10 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"239","type":"วิ่ง 80 เมตร","ageGroup":"12 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"240","type":"วิ่ง 80 เมตร","ageGroup":"12 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"241","type":"วิ่ง 200 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"242","type":"วิ่ง 200 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"243","type":"วิ่ง 200 เมตร","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"244","type":"วิ่ง 200 เมตร","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"245","type":"วิ่ง 200 เมตร","ageGroup":"12 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"246","type":"วิ่ง 200 เมตร","ageGroup":"12 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"247","type":"วิ่ง 200 เมตร","ageGroup":"10 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"248","type":"วิ่ง 200 เมตร","ageGroup":"10 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"249","type":"วิ่ง 400 เมตร","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"250","type":"วิ่ง 400 เมตร","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"251","type":"วิ่ง 400 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"252","type":"วิ่ง 400 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"253","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"8 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"254","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"8 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"255","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"10 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"256","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"10 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"257","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"12 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"258","type":"วิ่งผลัด 5 × 80 เมตร","ageGroup":"12 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"259","type":"ยืนกระโดด","ageGroup":"4 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"260","type":"ยืนกระโดด","ageGroup":"4 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"261","type":"ยืนกระโดด","ageGroup":"6 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"262","type":"ยืนกระโดด","ageGroup":"6 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"263","type":"วิ่งกระโดดไกล","ageGroup":"8 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"264","type":"วิ่งกระโดดไกล","ageGroup":"8 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"265","type":"วิ่งกระโดดไกล","ageGroup":"10 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"266","type":"วิ่งกระโดดไกล","ageGroup":"10 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"267","type":"วิ่งกระโดดไกล","ageGroup":"12 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"268","type":"วิ่งกระโดดไกล","ageGroup":"12 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"269","type":"วิ่งกระโดดไกล","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"270","type":"วิ่งกระโดดไกล","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"271","type":"วิ่งกระโดดไกล","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"272","type":"วิ่งกระโดดไกล","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"301","type":"วิ่ง 60 เมตร","ageGroup":"4 ปี ชาย","round":"คัดเลือก"},{"itemNo":"302","type":"วิ่ง 60 เมตร","ageGroup":"4 ปี หญิง","round":"คัดเลือก"},{"itemNo":"303","type":"วิ่ง 60 เมตร","ageGroup":"6 ปี ชาย","round":"คัดเลือก"},{"itemNo":"304","type":"วิ่ง 60 เมตร","ageGroup":"6 ปี หญิง","round":"คัดเลือก"},{"itemNo":"305","type":"วิ่ง 60 เมตร","ageGroup":"8 ปี ชาย","round":"คัดเลือก"},{"itemNo":"306","type":"วิ่ง 60 เมตร","ageGroup":"8 ปี หญิง","round":"คัดเลือก"},{"itemNo":"307","type":"วิ่ง 60 เมตร","ageGroup":"10 ปี ชาย","round":"คัดเลือก"},{"itemNo":"308","type":"วิ่ง 60 เมตร","ageGroup":"10 ปี หญิง","round":"คัดเลือก"},{"itemNo":"309","type":"วิ่ง 60 เมตร","ageGroup":"12 ปี ชาย","round":"คัดเลือก"},{"itemNo":"310","type":"วิ่ง 60 เมตร","ageGroup":"12 ปี หญิง","round":"คัดเลือก"},{"itemNo":"311","type":"วิ่ง 800 เมตร","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"312","type":"วิ่ง 800 เมตร","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"313","type":"วิ่ง 800 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"314","type":"วิ่ง 800 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"315","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"10 ปี หญิง","round":"คัดเลือก"},{"itemNo":"316","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"12 ปี ชาย","round":"คัดเลือก"},{"itemNo":"317","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"12 ปี หญิง","round":"คัดเลือก"},{"itemNo":"318","type":"วิ่ง 60 เมตร","ageGroup":"4 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"319","type":"วิ่ง 60 เมตร","ageGroup":"4 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"320","type":"วิ่ง 60 เมตร","ageGroup":"6 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"321","type":"วิ่ง 60 เมตร","ageGroup":"6 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"322","type":"วิ่ง 60 เมตร","ageGroup":"8 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"323","type":"วิ่ง 60 เมตร","ageGroup":"8 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"324","type":"วิ่ง 60 เมตร","ageGroup":"10 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"325","type":"วิ่ง 60 เมตร","ageGroup":"10 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"326","type":"วิ่ง 60 เมตร","ageGroup":"12 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"327","type":"วิ่ง 60 เมตร","ageGroup":"12 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"328","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"329","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"330","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"14 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"331","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"14 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"332","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"12 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"333","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"12 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"334","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"10 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"335","type":"วิ่งผลัด 4 × 100 เมตร","ageGroup":"10 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"336","type":"วิ่งผลัด 3 × 800 เมตร","ageGroup":"16 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"337","type":"วิ่งผลัด 3 × 800 เมตร","ageGroup":"16 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"338","type":"ขว้างบอล","ageGroup":"4 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"339","type":"ขว้างบอล","ageGroup":"4 ปี หญิง","round":"ชิงชนะเลิศ"},{"itemNo":"340","type":"ขว้างบอล","ageGroup":"6 ปี ชาย","round":"ชิงชนะเลิศ"},{"itemNo":"341","type":"ขว้างบอล","ageGroup":"6 ปี หญิง","round":"ชิงชนะเลิศ"}];
+let eventDatabase = [];
+try {
+  const savedEventDatabase = JSON.parse(localStorage.getItem("sportEventDatabaseV8") || "null");
+  eventDatabase = Array.isArray(savedEventDatabase) && savedEventDatabase.length
+    ? savedEventDatabase
+    : DEFAULT_EVENT_DATABASE.map(item => ({...item}));
+} catch(error) {
+  eventDatabase = DEFAULT_EVENT_DATABASE.map(item => ({...item}));
+}
+if(!localStorage.getItem("sportEventDatabaseV8") || eventDatabase.length === 0) {
+  localStorage.setItem("sportEventDatabaseV8", JSON.stringify(eventDatabase));
+}
 const $ = id => document.getElementById(id);
 
 
@@ -140,11 +151,7 @@ function lookupEventByItemNo(){
   if(found){
     box.innerHTML=`<div><b>${escapeHtml(found.type)}</b></div><div>${escapeHtml(found.ageGroup)}</div><div>${escapeHtml(normalizeRound(found.round) || found.round)}</div>`;
     box.classList.remove("not-found");
-    const roundValue=normalizeRound(found.round);
-    if(roundValue){
-      $("roundName").value=roundValue;
-      toggleGroupField();
-    }
+    toggleGroupField();
   }else{
     box.textContent="ไม่พบรายการที่ "+raw+" ในฐานข้อมูล";
     box.classList.add("not-found");
@@ -211,12 +218,23 @@ function importEventsFromFile(event){
 }
 function renderEventDatabase(){
   const box=$("eventDatabaseList");
-  if(eventDatabase.length===0){ box.innerHTML='<p class="hint">ยังไม่มีฐานข้อมูลรายการแข่งขัน</p>'; return; }
+  if(eventDatabase.length===0){ box.innerHTML='<p class="hint">ยังไม่มีฐานข้อมูลรายการแข่งขัน กรุณากด "คืนค่าฐานข้อมูลเริ่มต้น" หรืออัปโหลดไฟล์ Excel</p>'; return; }
   box.innerHTML=eventDatabase.map((x,i)=>`<div class="saved-item"><div class="saved-title">รายการที่ ${escapeHtml(x.itemNo)} • ${escapeHtml(x.type)}</div><div class="saved-sub">${escapeHtml(x.ageGroup)} • ${escapeHtml(normalizeRound(x.round) || x.round)}</div><button class="danger" onclick="deleteEventItem(${i})">ลบรายการนี้</button></div>`).join("");
 }
 function deleteEventItem(i){
   if(confirm("ลบรายการแข่งขันนี้หรือไม่")){ eventDatabase.splice(i,1); saveEventDatabase(); renderEventDatabase(); lookupEventByItemNo(); }
 }
+
+function restoreDefaultEventDatabase(){
+  if(confirm("คืนค่าฐานข้อมูลรายการแข่งขันเริ่มต้น 151 รายการหรือไม่")){
+    eventDatabase=DEFAULT_EVENT_DATABASE.map(item=>({...item}));
+    saveEventDatabase();
+    renderEventDatabase();
+    lookupEventByItemNo();
+    alert("คืนค่าฐานข้อมูลเริ่มต้นแล้ว "+eventDatabase.length+" รายการ");
+  }
+}
+
 function clearEventDatabase(){
   if(confirm("ล้างฐานข้อมูลรายการแข่งขันทั้งหมดหรือไม่")){ eventDatabase=[]; saveEventDatabase(); renderEventDatabase(); lookupEventByItemNo(); }
 }
@@ -315,18 +333,21 @@ function changeItemNo(delta){
 }
 
 function toggleGroupField(){
-  const isFinal = $("roundName").value === "รอบชิงชนะเลิศ";
-  $("groupField").classList.toggle("hidden", isFinal);
-  if(isFinal) $("groupNo").value = "";
+  const found=findCurrentEvent();
+  const roundValue=found ? normalizeRound(found.round) : "";
+  const isFinal = roundValue === "รอบชิงชนะเลิศ";
+  $("groupField").classList.toggle("hidden", isFinal || !roundValue);
+  if(isFinal || !roundValue) $("groupNo").value = "";
   updatePreview();
 }
 
 function makeShareText(){
-  const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), roundName=$("roundName").value;
+  const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim();
+  const eventData=findCurrentEvent();
+  const roundName=eventData ? normalizeRound(eventData.round) : "";
   const selects=[...document.querySelectorAll(".teamSelect")];
   let text="รายงานผลการแข่งขันกีฬา\n";
   text += "รายการที่\t" + itemNo + "\n";
-  const eventData=findCurrentEvent();
   if(eventData){
     text += "ประเภท\t" + eventData.type + "\n";
     text += "รุ่นอายุ\t" + eventData.ageGroup + "\n";
@@ -338,9 +359,10 @@ function makeShareText(){
   return text;
 }
 function makeCsvText(){
-  const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim(), roundName=$("roundName").value;
-  let rows = [["รายการที่", itemNo]];
+  const groupNo=$("groupNo").value.trim(), itemNo=$("itemNo").value.trim();
   const eventData=findCurrentEvent();
+  const roundName=eventData ? normalizeRound(eventData.round) : "";
+  let rows = [["รายการที่", itemNo]];
   if(eventData){
     rows.push(["ประเภท", eventData.type]);
     rows.push(["รุ่นอายุ", eventData.ageGroup]);
@@ -355,7 +377,8 @@ function updatePreview(){ $("preview").textContent = makeShareText(); }
 function checkData(){
   if(!$("itemNo").value.trim()){ alert("กรุณากรอกรายการที่"); return false; }
   if(eventDatabase.length>0 && !getCurrentEventName()){ alert("ไม่พบเลขรายการนี้ในฐานข้อมูลรายการแข่งขัน"); return false; }
-  if($("roundName").value === "รอบคัดเลือก" && !$("groupNo").value.trim()){ alert("กรุณาเลือกกลุ่มที่"); return false; }
+  const currentEvent=findCurrentEvent();
+  if(currentEvent && normalizeRound(currentEvent.round) === "รอบคัดเลือก" && !$("groupNo").value.trim()){ alert("กรุณาเลือกกลุ่มที่"); return false; }
   if(teams.length===0){ alert("กรุณาเพิ่มชื่อหน่วยกีฬาก่อน"); return false; }
   const empty=[...document.querySelectorAll(".teamSelect")].some(s=>!s.value);
   if(empty && !confirm("ยังเลือกหน่วยกีฬาไม่ครบ ต้องการดำเนินการต่อหรือไม่")) return false;
@@ -378,7 +401,7 @@ function exportCsv(){
   a.href=url; a.download="sport_result_"+safeName+".csv"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 function currentReportData(){
-  return {id:Date.now(), groupNo:$("roundName").value === "รอบคัดเลือก" ? $("groupNo").value.trim() : "", itemNo:$("itemNo").value.trim(), eventName:getCurrentEventName(), eventData:findCurrentEvent(), roundName:$("roundName").value, rankCount:$("rankCount").value, ranks:[...document.querySelectorAll(".teamSelect")].map(s=>s.value), createdAt:new Date().toLocaleString("th-TH")};
+  return {id:Date.now(), groupNo:(findCurrentEvent() && normalizeRound(findCurrentEvent().round) === "รอบคัดเลือก") ? $("groupNo").value.trim() : "", itemNo:$("itemNo").value.trim(), eventName:getCurrentEventName(), eventData:findCurrentEvent(), roundName:(findCurrentEvent() ? normalizeRound(findCurrentEvent().round) : ""), rankCount:$("rankCount").value, ranks:[...document.querySelectorAll(".teamSelect")].map(s=>s.value), createdAt:new Date().toLocaleString("th-TH")};
 }
 function saveCurrentReport(){
   if(!checkData()) return;
@@ -386,7 +409,7 @@ function saveCurrentReport(){
 }
 function loadReport(id){
   const r=savedReports.find(x=>x.id===id); if(!r) return;
-  $("itemNo").value=r.itemNo||""; lookupEventByItemNo(); $("roundName").value=r.roundName||"รอบคัดเลือก"; $("groupNo").value=r.groupNo||""; $("rankCount").value=r.rankCount||"3"; toggleGroupField();
+  $("itemNo").value=r.itemNo||""; lookupEventByItemNo(); $("groupNo").value=r.groupNo||""; $("rankCount").value=r.rankCount||"3"; toggleGroupField();
   createRankTable(); [...document.querySelectorAll(".teamSelect")].forEach((s,i)=>{s.value=(r.ranks||[])[i]||""}); updatePreview(); window.scrollTo({top:0,behavior:"smooth"});
 }
 function deleteReport(id){ if(confirm("ลบรายการนี้หรือไม่")){ savedReports=savedReports.filter(x=>x.id!==id); saveReports(); renderSavedReports(); } }
@@ -401,12 +424,12 @@ function renderSavedReports(){
 function clearSavedReports(){ if(confirm("ล้างประวัติที่บันทึกไว้ทั้งหมดหรือไม่")){ savedReports=[]; saveReports(); renderSavedReports(); } }
 function clearForm(){
   if(!confirm("ล้างข้อมูลรายการนี้หรือไม่")) return;
-  $("groupNo").value=""; $("itemNo").value=""; lookupEventByItemNo(); $("roundName").value="รอบคัดเลือก"; $("rankCount").value="3"; toggleGroupField(); createRankTable(); updatePreview();
+  $("groupNo").value=""; $("itemNo").value=""; lookupEventByItemNo(); $("rankCount").value="3"; toggleGroupField(); createRankTable(); updatePreview();
 }
 function csvEscape(v){ v=String(v??""); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));}
 function escapeAttr(s){return escapeHtml(s).replace(/'/g,"&#039;");}
-["groupNo","roundName","rankCount"].forEach(id=>setTimeout(()=>$(id).addEventListener("input",updatePreview),0));
+["groupNo","rankCount"].forEach(id=>setTimeout(()=>$(id).addEventListener("input",updatePreview),0));
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("service-worker.js"); }
 setupRankCount(); renderTeams(); renderEventDatabase(); toggleGroupField(); lookupEventByItemNo(); createRankTable(); renderSavedReports();
 </script>

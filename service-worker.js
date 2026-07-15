@@ -1,4 +1,4 @@
-const CACHE_NAME = "sport-report-v8";
+const CACHE_NAME = "sport-report-v8-2-auto-round";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./service-worker.js", "./icon-192.png", "./icon-512.png", "./team-template.xlsx",
   "./event-template.xlsx"];
 self.addEventListener("install", event => {
